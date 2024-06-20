@@ -54,6 +54,7 @@ fn print_date(date: Date) {
 }
 
 fn ord(num: usize) -> &'static str {
+	let num = num % 100; //ordinals repeat every 100
 	if (10..=19).contains(&num) {
 		// i'd like to make this fucked up math + min/max in the index if i can
 		// but that is apparently difficult
