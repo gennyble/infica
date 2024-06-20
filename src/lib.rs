@@ -183,6 +183,8 @@ fn year_leaps(year: u32) -> bool {
 
 #[cfg(test)]
 mod test {
+	use time::Duration;
+
 	use crate::year_leaps;
 
 	#[test]
@@ -319,6 +321,52 @@ mod test {
 
 		// Year Day
 		check!(12 - 31, 13 - 29)
+	}
+
+	#[test]
+	fn known_culprits() -> Result<(), time::error::ComponentRange> {
+		let mut ifc: crate::Date;
+		let june_17th_2024 = time::Date::from_calendar_date(2024, time::Month::June, 17)?;
+		ifc = june_17th_2024.into();
+		assert_eq!(june_17th_2024, ifc.into(), "ifc IR was {ifc:?}");
+
+		let december_30th_2024 = time::Date::from_calendar_date(2024, time::Month::December, 30)?;
+		ifc = december_30th_2024.into();
+		assert_eq!(december_30th_2024, ifc.into(), "ifc IR was {ifc:?}");
+		Ok(())
+	}
+
+	#[test]
+	fn round_trip() {
+		let today_greg = time::OffsetDateTime::now_utc().date();
+		let today_ifc: crate::Date = today_greg.into();
+		assert_eq!(today_greg, today_ifc.into());
+
+		//check 20 years in the past and future
+		let broken_dates: Vec<_> = (0..(366 * 20))
+			.map(|days| {
+				(
+					today_greg + Duration::days(days),
+					today_greg - Duration::days(days),
+				)
+			})
+			.flat_map(|(tomorrow_greg, yesterday_greg)| {
+				let mut retval = vec![];
+				let mut new_ifc: crate::Date = tomorrow_greg.into();
+				if tomorrow_greg != new_ifc.into() {
+					retval.push((tomorrow_greg, new_ifc));
+				}
+
+				new_ifc = yesterday_greg.into();
+				if yesterday_greg != new_ifc.into() {
+					retval.push((yesterday_greg, new_ifc));
+				}
+
+				retval
+			})
+			.take(10)
+			.collect();
+		assert!(broken_dates.is_empty(), "{broken_dates:?}")
 	}
 
 	//TODO: gen- test IFC -> greg
