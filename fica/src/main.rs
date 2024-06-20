@@ -105,4 +105,17 @@ mod test {
 		assert_eq!(ord(2453), "rd");
 		assert_eq!(ord(2341), "st");
 	}
+
+	#[test]
+	fn weird_ord_high_teens() {
+		assert_eq!(ord(111), "th", "should be one hundred and eleventh");
+		assert_eq!(ord(112), "th");
+		assert_eq!(ord(113), "th");
+		assert_eq!(ord(114), "th");
+		assert_eq!(ord(115), "th");
+		assert_eq!(ord(116), "th");
+		assert_eq!(ord(117), "th");
+		assert_eq!(ord(118), "th");
+		assert_eq!(ord(119), "th");
+	}
 }
