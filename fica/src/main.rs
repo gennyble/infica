@@ -61,7 +61,7 @@ fn ord(num: usize) -> &'static str {
 		"th"
 	} else {
 		// teens - ordinals
-		["th", "th", "st", "nd", "rd", "th"][(num % 10).min(4) + 1]
+		["th", "st", "nd", "rd", "th"][(num % 10).min(4)]
 	}
 }
 
