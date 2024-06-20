@@ -1,0 +1,19 @@
+[package]
+name = "infica"
+version = "0.1.0"
+authors = ["gennyble <gen@nyble.dev>"]
+description = "international fixed calendar support for the time crate"
+repository = "https://github.com/gennyble/infica"
+license = "MIT"
+categories = ["date-and-time"]
+edition = "2021"
+
+[dependencies]
+time = "0.3.36"
+
+[features]
+local-offset = ["time/local-offset"]
+passtime = []
+
+[workspace]
+members = ["fica"]
