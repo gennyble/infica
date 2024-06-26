@@ -110,15 +110,16 @@ impl From<time::Date> for Date {
 	fn from(date: time::Date) -> Self {
 		let year = date.year() as u32;
 		let ord = date.ordinal() - 1;
+		let leap = year_leaps(year);
 
-		if year_leaps(year) && ord == 168 {
+		if leap && ord == 168 {
 			// Catch the leap day
 			return Self {
 				year,
 				month: 6,
 				day: 29,
 			};
-		} else if ord == 364 || ord == 365 {
+		} else if (!leap && ord == 364) || ord == 365 {
 			// Catch both year days
 			return Self {
 				year,
@@ -127,7 +128,7 @@ impl From<time::Date> for Date {
 			};
 		}
 
-		if !year_leaps(year) || ord <= 168 {
+		if !leap || ord <= 168 {
 			// not a leap year path
 			// also the "leap year but before the leap-day" path
 			Self {
