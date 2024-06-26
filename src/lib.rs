@@ -294,6 +294,9 @@ mod test {
 		// Sol
 		check!(06 - 18, 07 - 01);
 		check!(07 - 15, 07 - 28);
+		//leap years don't change conversion after leap day
+		check!(leap 06 - 18, 07 - 01);
+		check!(leap 07 - 15, 07 - 28);
 
 		// July
 		check!(07 - 16, 08 - 01);
@@ -318,13 +321,15 @@ mod test {
 		// December
 		check!(12 - 03, 13 - 01);
 		check!(12 - 30, 13 - 28);
+		check!(leap 12 - 30, 13 - 28);
 
 		// Year Day
-		check!(12 - 31, 13 - 29)
+		check!(12 - 31, 13 - 29);
+		check!(leap 12 - 31, 13 - 29);
 	}
 
 	#[test]
-	fn known_culprits() -> Result<(), time::error::ComponentRange> {
+	fn round_trip_known_culprits() -> Result<(), time::error::ComponentRange> {
 		let mut ifc: crate::Date;
 		let june_17th_2024 = time::Date::from_calendar_date(2024, time::Month::June, 17)?;
 		ifc = june_17th_2024.into();
