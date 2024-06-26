@@ -49,7 +49,8 @@ impl Date {
 	pub fn ordinal(&self) -> u16 {
 		let ord = (self.month as u16 - 1) * 28 + self.day as u16;
 
-		if self.is_leap() && ord >= 169 {
+		//if leap year and the day is on/after leap day and it isn't leap day
+		if self.is_leap() && ord >= 169 && !(self.month == 6 && self.day == 29) {
 			ord + 1
 		} else {
 			ord
@@ -334,7 +335,12 @@ mod test {
 		let mut ifc: crate::Date;
 		let june_17th_2024 = time::Date::from_calendar_date(2024, time::Month::June, 17)?;
 		ifc = june_17th_2024.into();
-		assert_eq!(june_17th_2024, ifc.into(), "ifc IR was {ifc:?}");
+		assert_eq!(
+			june_17th_2024,
+			ifc.into(),
+			"ifc IR was {ifc:?}, ordinal: {}",
+			ifc.ordinal()
+		);
 
 		let december_30th_2024 = time::Date::from_calendar_date(2024, time::Month::December, 30)?;
 		ifc = december_30th_2024.into();
