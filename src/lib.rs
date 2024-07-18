@@ -153,21 +153,37 @@ impl From<Date> for time::Date {
 	}
 }
 
-const MONTHS: [[&str; 2]; 13] = [
-	["January", "Jan"],
-	["February", "Feb"],
-	["March", "Mar"],
-	["April", "Apr"],
-	["May", "May"],
-	["June", "Jun"],
-	["Sol", "Sol"],
-	["July", "Jul"],
-	["August", "Aug"],
-	["September", "Sep"],
-	["October", "Oct"],
-	["November", "Nov"],
-	["December", "Dec"],
+/// Capitalized months (long, short) and lowercase months (long, short).
+// it seems useful to have the lowercase here so we don't have to always call
+// to_lowercase
+const MONTHS: [[&str; 4]; 13] = [
+	["January", "Jan", "january", "jan"],
+	["February", "Feb", "february", "feb"],
+	["March", "Mar", "march", "mar"],
+	["April", "Apr", "april", "apr"],
+	["May", "May", "may", "may"],
+	["June", "Jun", "june", "jun"],
+	["Sol", "Sol", "sol", "sol"],
+	["July", "Jul", "july", "jul"],
+	["August", "Aug", "august", "aug"],
+	["September", "Sep", "september", "sep"],
+	["October", "Oct", "october", "oct"],
+	["November", "Nov", "november", "nov"],
+	["December", "Dec", "december", "dec"],
 ];
+
+/// Resolve a month name, ignoring case, to an index. If the provided month name
+/// is invalid `None` is returned. Else `Some(u8)` is returned (1 indexed)
+pub fn month_index(test: &str) -> Option<u8> {
+	let lower = test.to_lowercase();
+	for (idx, month) in MONTHS.iter().enumerate() {
+		if month[2] == lower || month[3] == lower {
+			return Some(idx as u8 + 1);
+		}
+	}
+
+	None
+}
 
 /// Whether or not a year is a leap year
 fn year_leaps(year: u32) -> bool {
