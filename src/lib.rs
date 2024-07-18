@@ -201,140 +201,167 @@ mod test {
 		assert!(year_leaps(2024));
 	}
 
-	#[allow(clippy::zero_prefixed_literal)]
-	#[test]
-	fn correctly_upconverts_boundaries() {
-		macro_rules! check {
-			($gyear:literal - $gmonth:literal - $gday:literal, $year:literal - $month:literal - $day:literal) => {{
-				let exp = crate::Date::from(
-					time::Date::from_calendar_date(
-						$gyear,
-						time::Month::try_from($gmonth).unwrap(),
-						$gday,
-					)
-					.unwrap(),
-				);
+	struct Pair {
+		ifc: crate::Date,
+		greg: time::Date,
+	}
 
-				let act = crate::Date {
+	macro_rules! pair {
+		($gyear:literal - $gmonth:literal - $gday:literal, $year:literal - $month:literal - $day:literal) => {{
+			Pair {
+				ifc: crate::Date {
 					year: $gyear,
 					month: $month,
 					day: $day,
-				};
+				},
+				greg: time::Date::from_calendar_date(
+					$gyear,
+					time::Month::try_from($gmonth).unwrap(),
+					$gday,
+				)
+				.unwrap(),
+			}
+		}};
 
-				if exp != act {
-					if $gyear == $year {
-						panic!(
-							"Failed on, year {}, {}-{} // IFC {}-{}. Greg converted to {}-{}",
-							$gyear, $gmonth, $gday, $month, $day, exp.month, exp.day
-						)
-					} else {
-						panic!(
-							"Failed on, {}-{}-{} // IFC {}-{}-{}. Greg converted to {}-{}-{}",
-							$gyear,
-							$gmonth,
-							$gday,
-							$year,
-							$month,
-							$day,
-							exp.year,
-							exp.month,
-							exp.day
-						)
-					}
-				}
-			}};
+		// The year in here has to be a non-leap year
+		($gmonth:literal - $gday:literal, $month:literal - $day:literal) => {
+			pair!(2023 - $gmonth - $gday, 2023 - $month - $day)
+		};
 
-			// The year in here has to be a non-leap year
-			($gmonth:literal - $gday:literal, $month:literal - $day:literal) => {
-				check!(2023 - $gmonth - $gday, 2023 - $month - $day)
-			};
+		// The year in here has to be a leap year
+		(leap $gmonth:literal - $gday:literal, $month:literal - $day:literal) => {
+			pair!(2024 - $gmonth - $gday, 2024 - $month - $day)
+		};
+	}
 
-			// The year in here has to be a leap year
-			(leap $gmonth:literal - $gday:literal, $month:literal - $day:literal) => {
-				check!(2024 - $gmonth - $gday, 2024 - $month - $day)
-			};
+	fn format8601(ifc: &crate::Date) -> String {
+		format!("{}-{}-{}", ifc.year, ifc.month, ifc.day)
+	}
+
+	fn format8601g(greg: &time::Date) -> String {
+		format!("{}-{}-{}", greg.year(), u8::from(greg.month()), greg.day())
+	}
+
+	#[allow(clippy::zero_prefixed_literal)]
+	fn boundaries() -> Vec<Pair> {
+		vec![
+			// January
+			pair!(01 - 01, 01 - 01),
+			pair!(01 - 28, 01 - 28),
+			// February
+			pair!(01 - 29, 02 - 01),
+			pair!(02 - 25, 02 - 28),
+			// March
+			pair!(02 - 26, 03 - 01),
+			pair!(03 - 25, 03 - 28),
+			pair!(leap 03 - 24, 03 - 28),
+			// April
+			pair!(03 - 26, 04 - 01),
+			pair!(04 - 22, 04 - 28),
+			pair!(leap 03 - 25, 04 - 01),
+			pair!(leap 04 - 21, 04 - 28),
+			// May
+			pair!(04 - 23, 05 - 01),
+			pair!(05 - 20, 05 - 28),
+			pair!(leap 04 - 22, 05 - 01),
+			pair!(leap 05 - 19, 05 - 28),
+			// June
+			pair!(05 - 21, 06 - 01),
+			pair!(06 - 17, 06 - 28),
+			pair!(leap 05 - 20, 06 - 01),
+			pair!(leap 06 - 16, 06 - 28),
+			// Leap day
+			pair!(leap 06 - 17, 06 - 29),
+			// Sol
+			pair!(06 - 18, 07 - 01),
+			pair!(07 - 15, 07 - 28),
+			//leap years don't change conversion after leap day
+			pair!(leap 06 - 18, 07 - 01),
+			pair!(leap 07 - 15, 07 - 28),
+			// July
+			pair!(07 - 16, 08 - 01),
+			pair!(08 - 12, 08 - 28),
+			// August
+			pair!(08 - 13, 09 - 01),
+			pair!(09 - 09, 09 - 28),
+			// September
+			pair!(09 - 10, 10 - 01),
+			pair!(10 - 07, 10 - 28),
+			// October
+			pair!(10 - 08, 11 - 01),
+			pair!(11 - 04, 11 - 28),
+			// November
+			pair!(11 - 05, 12 - 01),
+			pair!(12 - 02, 12 - 28),
+			// December
+			pair!(12 - 03, 13 - 01),
+			pair!(12 - 30, 13 - 28),
+			pair!(leap 12 - 30, 13 - 28),
+			// Year Day
+			pair!(12 - 31, 13 - 29),
+			pair!(leap 12 - 31, 13 - 29),
+		]
+	}
+
+	#[test]
+	fn correctly_converts_boundaries_greg_to_ifc() {
+		for pair in boundaries() {
+			let Pair { ifc, greg } = pair;
+			let conv: crate::Date = greg.into();
+
+			if conv != pair.ifc {
+				println!(
+					"failed greg -> ifc conversion:\nexpected ifc {} // got ifc {} // from greg {}",
+					format8601(&ifc),
+					format8601(&conv),
+					format8601g(&greg)
+				)
+			}
 		}
+	}
 
-		// January
-		check!(01 - 01, 01 - 01);
-		check!(01 - 28, 01 - 28);
+	#[test]
+	fn correctly_converts_boundaries_ifc_to_greg() {
+		for pair in boundaries() {
+			let Pair { ifc, greg } = pair;
+			let conv: time::Date = ifc.into();
 
-		// February
-		check!(01 - 29, 02 - 01);
-		check!(02 - 25, 02 - 28);
+			if conv != pair.greg {
+				println!(
+					"failed ifc -> greg conversion:\nexpected greg {} // got greg {} // from ifc {}",
+					format8601g(&greg),
+					format8601g(&conv),
+					format8601(&ifc)
+				)
+			}
+		}
+	}
 
-		// March
-		check!(02 - 26, 03 - 01);
-		check!(03 - 25, 03 - 28);
+	#[test]
+	fn correctly_converts_boundaries_roundtrip() {
+		for pair in boundaries() {
+			let Pair { ifc, .. } = pair;
+			let conv_greg: time::Date = ifc.into();
+			let conv: crate::Date = conv_greg.into();
 
-		check!(leap 03 - 24, 03 - 28);
-
-		// April
-		check!(03 - 26, 04 - 01);
-		check!(04 - 22, 04 - 28);
-
-		check!(leap 03 - 25, 04 - 01);
-		check!(leap 04 - 21, 04 - 28);
-
-		// May
-		check!(04 - 23, 05 - 01);
-		check!(05 - 20, 05 - 28);
-
-		check!(leap 04 - 22, 05 - 01);
-		check!(leap 05 - 19, 05 - 28);
-
-		// June
-		check!(05 - 21, 06 - 01);
-		check!(06 - 17, 06 - 28);
-
-		check!(leap 05 - 20, 06 - 01);
-		check!(leap 06 - 16, 06 - 28);
-
-		// Leap day
-		check!(leap 06 - 17, 06 - 29);
-
-		// Sol
-		check!(06 - 18, 07 - 01);
-		check!(07 - 15, 07 - 28);
-		//leap years don't change conversion after leap day
-		check!(leap 06 - 18, 07 - 01);
-		check!(leap 07 - 15, 07 - 28);
-
-		// July
-		check!(07 - 16, 08 - 01);
-		check!(08 - 12, 08 - 28);
-
-		// August
-		check!(08 - 13, 09 - 01);
-		check!(09 - 09, 09 - 28);
-
-		// September
-		check!(09 - 10, 10 - 01);
-		check!(10 - 07, 10 - 28);
-
-		// October
-		check!(10 - 08, 11 - 01);
-		check!(11 - 04, 11 - 28);
-
-		// November
-		check!(11 - 05, 12 - 01);
-		check!(12 - 02, 12 - 28);
-
-		// December
-		check!(12 - 03, 13 - 01);
-		check!(12 - 30, 13 - 28);
-		check!(leap 12 - 30, 13 - 28);
-
-		// Year Day
-		check!(12 - 31, 13 - 29);
-		check!(leap 12 - 31, 13 - 29);
+			if conv != pair.ifc {
+				println!(
+					"failed roundtrip conversion:\nstarting ifc {} // through greg {} // ending ifc {}",
+					format8601(&ifc),
+					format8601g(&conv_greg),
+					format8601(&conv)
+				)
+			}
+		}
 	}
 
 	#[test]
 	fn round_trip_known_culprits() -> Result<(), time::error::ComponentRange> {
 		let mut ifc: crate::Date;
+
 		let june_17th_2024 = time::Date::from_calendar_date(2024, time::Month::June, 17)?;
 		ifc = june_17th_2024.into();
+
 		assert_eq!(
 			june_17th_2024,
 			ifc.into(),
@@ -344,7 +371,9 @@ mod test {
 
 		let december_30th_2024 = time::Date::from_calendar_date(2024, time::Month::December, 30)?;
 		ifc = december_30th_2024.into();
+
 		assert_eq!(december_30th_2024, ifc.into(), "ifc IR was {ifc:?}");
+
 		Ok(())
 	}
 
