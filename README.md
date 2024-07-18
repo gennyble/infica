@@ -16,7 +16,7 @@ terminal. it also lets you get the month boundaries, and month midpoint,
 of an IFC month in the gregorian calendar.  
 *(the month midpoint is taken as the first day of the third week, the 15th day)*
 
-**examples**
+**examples**  
 `fica` - get the current date in the IFC  
 `fica month` OR `fica current` - get the boundaries of the current month  
 `fica <month>` - get the boundaries of the *\<month\>* month
