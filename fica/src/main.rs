@@ -1,4 +1,5 @@
 use infica::Date;
+use owo_colors::OwoColorize;
 use time::{format_description::FormatItem, macros::format_description};
 
 const GREG: &[FormatItem] =
@@ -6,61 +7,58 @@ const GREG: &[FormatItem] =
 
 fn main() {
 	let now = Date::now_local().unwrap();
+	let arg = std::env::args().nth(1);
 
-	println!("==TODAY==");
-	print_date(now);
+	match arg.as_deref() {
+		Some("month") | Some("current") => {
+			print_month_boundaries(now);
+		}
+		Some(mo) => match infica::month_index(mo) {
+			None => {
+				println!("{} is not a recognized IFC month", mo.cyan());
+			}
+			Some(idx) => {
+				let mut month_date = now;
+				month_date.month = idx;
 
-	if std::env::args().any(|s| s == "start") {
-		let mut start = now;
-		start.day = 1;
-
-		println!("\n==START==");
-		print_date(start);
-	}
-
-	if std::env::args().any(|s| s == "middle" || s == "mid") {
-		let mut start = now;
-		start.day = 15;
-
-		println!("\n==MIDDLE==");
-		print_date(start);
-	}
-
-	if std::env::args().any(|s| s == "end") {
-		let mut start = now;
-		start.day = 28;
-
-		println!("\n==END==");
-		print_date(start);
+				print_month_boundaries(month_date);
+			}
+		},
+		None => println!("Today is {} in the IFC", now.rfc2822().cyan()),
 	}
 }
 
-fn print_date(date: Date) {
-	let now = date; // lol
-	println!(
-		"{}, {} {}{} {}",
-		now.day_name(),
-		now.month_name(),
-		now.day,
-		ord(now.day as usize),
-		now.year
-	);
+fn print_month_boundaries(ifc: Date) {
+	let mut start = ifc;
+	start.day = 1;
 
-	if std::env::args().any(|s| s == "greg") {
-		let greg = time::Date::from(now);
-		let str = greg.format(GREG).unwrap();
-		println!("{str}{} {}", ord(greg.day() as usize), greg.year());
-	}
+	let mut mid = ifc;
+	mid.day = 15;
+
+	let mut end = ifc;
+	end.day = 28;
+
+	println!(
+		"The IFC month of {} has Gregorian boundaries of {}\nand {} with a midpoint of {}",
+		start.month_name().cyan(),
+		format_greg(start).green(),
+		format_greg(end).red(),
+		format_greg(mid).yellow()
+	);
+}
+
+fn format_greg<G: Into<time::Date>>(date: G) -> String {
+	let greg = date.into();
+	let str = greg.format(GREG).unwrap();
+	format!("{str}{} {}", ord(greg.day() as usize), greg.year())
 }
 
 fn ord(num: usize) -> &'static str {
 	let num = num % 100; //ordinals repeat every 100
+
 	if (10..=19).contains(&num) {
-		// i'd like to make this fucked up math + min/max in the index if i can
-		// but that is apparently difficult
 		"th"
 	} else {
-		// teens - ordinals
 		["th", "st", "nd", "rd", "th"][(num % 10).min(4)]
 	}
 }

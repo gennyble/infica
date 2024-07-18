@@ -16,6 +16,7 @@ name = "fica"
 version = "0.1.0"
 dependencies = [
  "infica",
+ "owo-colors",
  "time",
 ]
 
@@ -52,6 +53,12 @@ checksum = "5c7398b9c8b70908f6371f47ed36737907c87c52af34c268fed0bf0ceb92ead9"
 dependencies = [
  "libc",
 ]
+
+[[package]]
+name = "owo-colors"
+version = "4.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "caff54706df99d2a78a5a4e3455ff45448d81ef1bb63c22cd14052ca0e993a3f"
 
 [[package]]
 name = "powerfmt"
