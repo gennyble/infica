@@ -57,6 +57,11 @@ impl Date {
 		}
 	}
 
+	/// The number of weeks elapsed in the year; the week number
+	pub fn week(&self) -> u8 {
+		(self.month - 1) * 4 + ((self.day - 1) / 7)
+	}
+
 	/// The full name of the day. Sunday, Monday, etc.
 	pub fn day_name(&self) -> &'static str {
 		match (self.day - 1) % 7 {
