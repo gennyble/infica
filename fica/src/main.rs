@@ -5,11 +5,16 @@ use time::{format_description::FormatItem, macros::format_description};
 const GREG: &[FormatItem] =
 	format_description!("[weekday repr:long], [month repr:long] [day padding:none]");
 
+const GREG_SMALL8601: &[FormatItem] = format_description!("[month repr:long] [day padding:none]");
+
 fn main() {
 	let now = Date::now_local().unwrap();
 	let arg = std::env::args().nth(1);
 
 	match arg.as_deref() {
+		Some("elapsed") => {
+			print_elapsed_weeks(now);
+		}
 		Some("month") | Some("current") => {
 			print_month_boundaries(now);
 		}
@@ -24,7 +29,46 @@ fn main() {
 				print_month_boundaries(month_date);
 			}
 		},
-		None => println!("Today is {} in the IFC", now.rfc2822().cyan()),
+		None => println!(
+			"Today is {} in the IFC\nIt is week {}",
+			now.rfc2822().cyan(),
+			now.week().cyan()
+		),
+	}
+}
+
+fn print_elapsed_weeks(now: Date) {
+	let current_week = now.week();
+
+	for week in 1..=current_week {
+		let start_day = (week - 1) % 4 * 7 + 1;
+		let start = format_greg8601(Date {
+			year: now.year,
+			month: 1 + week / 4,
+			day: start_day,
+		});
+
+		let end = format_greg8601(Date {
+			year: now.year,
+			month: 1 + week / 4,
+			day: start_day + 7,
+		});
+
+		if week % 2 == 1 {
+			println!(
+				"Week {} started on {} and ended on {}",
+				week.cyan(),
+				start.cyan(),
+				end.cyan()
+			)
+		} else {
+			println!(
+				"Week {} started on {} and ended on {}",
+				week.yellow(),
+				start.yellow(),
+				end.yellow()
+			)
+		};
 	}
 }
 
@@ -51,6 +95,12 @@ fn format_greg<G: Into<time::Date>>(date: G) -> String {
 	let greg = date.into();
 	let str = greg.format(GREG).unwrap();
 	format!("{str}{} {}", ord(greg.day() as usize), greg.year())
+}
+
+fn format_greg8601<G: Into<time::Date>>(date: G) -> String {
+	let greg = date.into();
+	let str = greg.format(GREG_SMALL8601).unwrap();
+	format!("{str}{}", ord(greg.day() as usize))
 }
 
 fn ord(num: usize) -> &'static str {

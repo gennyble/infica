@@ -18,5 +18,6 @@ of an IFC month in the gregorian calendar.
 
 **examples**  
 `fica` - get the current date in the IFC  
+`fica elapsed` - to print the currently elapsed weeks, the current week, and their gregorian boundaries  
 `fica month` OR `fica current` - get the boundaries of the current month  
 `fica <month>` - get the boundaries of the *\<month\>* month
