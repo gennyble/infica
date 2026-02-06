@@ -9,7 +9,7 @@ categories = ["date-and-time"]
 edition = "2021"
 
 [dependencies]
-time = "0.3.36"
+time = "0.3.47"
 
 [features]
 local-offset = ["time/local-offset"]
